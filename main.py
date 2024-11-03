@@ -21,11 +21,15 @@ class Cell:
     def __init__(self, size):
         self.size = size
         self.wall = False
+        self.on   = False
 
     def draw(self, i, j):
         r = pygame.Rect(i*self.size[0], j*self.size[1], self.size[0], self.size[1])
         color = "gray" if self.wall else "white"
-        pygame.draw.rect(screen, color, r, 0 if self.wall else 1)
+        border = 1
+        if self.on or self.wall:
+            border = 0
+        pygame.draw.rect(screen, color, r, border)
 
 CELL_SIZE = 32
 assert WIDTH % CELL_SIZE == 0, f"CELL_SIZE {CELL_SIZE} is not divisble by WIDTH {WIDTH}!"
@@ -39,6 +43,7 @@ ROWS = int(HEIGHT / CELL_SIZE)
 
 cell = Cell((CELL_SIZE, CELL_SIZE))
 grid = []
+path = []
 
 prev_mouse_state = [False, False, False]
 mouse_pressed =    [False, False, False]
@@ -62,6 +67,45 @@ for r in range(ROWS):
     for c in range(COLS):
         row.append(Cell((CELL_SIZE, CELL_SIZE)))
     grid.append(row)
+
+def get_cell_nbors(i, j):
+    nbors = []
+    for n in range(-1, 1+1):
+        if n != 0:
+            if 0 <= i+n and i+n <= COLS-1 :
+                nbors.append((i+n, j))
+            if 0 <= j+n and j+n <= ROWS-1 :
+                nbors.append((i, j+n))
+    return nbors
+
+# Returns flow-chart to start from every cell
+def a_star(grid, start):
+    frontier = [start]
+    came_from = {}
+    came_from[start] = None
+
+    # pprint.pp(f"Starting from {start}")
+    while len(frontier) > 0:
+        current = frontier.pop()
+        for n in get_cell_nbors(current[0], current[1]):
+            if n not in came_from:
+                frontier.append(n)
+                came_from[n] = current
+                # pprint.pp(f"Reached from {n}")
+
+    return came_from
+
+def reconstruct_path(grid, start, end):
+    current = end
+    path = []
+    while current != start:
+        current = a_star(grid, start)[current]
+        path.append(current)
+    pprint.pp(f"Calculated path! of {len(path)} cells")
+    return path
+
+def is_start_end_ready():
+    return end_index[0] != None and end_index[1] != None and end_index[0] != None and end_index[1] != None
 
 while not quit_game:
     # Mouse press/release
@@ -102,10 +146,20 @@ while not quit_game:
     if end_set_key_state_pressed:
         end_index = (mi, mj)
 
+    # TODO: Can check if the clicking index is not the current start/end index and not calculate path
+    if start_set_key_state_pressed or end_set_key_state_pressed and is_start_end_ready():
+        path = reconstruct_path(grid, start_index, end_index)
+        # pprint.pp(path)
+
+    # "Turn on" the cells in path
+    for p in path:
+        grid[p[0]][p[1]].on = True
+
     # Draw grid
     for i, row in enumerate(grid):
         for j, cell in enumerate(row):
             cell.draw(i, j)
+            cell.on = False
 
     # Draw start and end
     if start_index[0] != None and start_index[1] != None:
