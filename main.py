@@ -10,6 +10,21 @@ pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 quit_game = False
 
+font = pygame.font.Font('.\Inconsolata-Regular.ttf', 32)
+font.set_bold(True)
+# font = pygame.font.Font(pygame.font.get_default_font())
+
+text_pos = (10, 10)
+
+
+def draw_text_outlined(screen, font, text, pos, color, out_color):
+    off = 4
+    text_surf = font.render(text, True, out_color)
+    p = (pos[0] + off, pos[1] + off)
+    screen.blit(text_surf, p)
+    text_surf = font.render(text, True, color)
+    screen.blit(text_surf, pos)
+
 clock = pygame.time.Clock()
 dt = 0 # in seconds
 
@@ -32,10 +47,6 @@ assert WIDTH % CELL_SIZE == 0, f"CELL_SIZE {CELL_SIZE} is not divisble by WIDTH 
 assert HEIGHT % CELL_SIZE == 0, f"CELL_SIZE {CELL_SIZE} is not divisble by HEIGHT {HEIGHT}!"
 COLS = int(WIDTH / CELL_SIZE)
 ROWS = int(HEIGHT / CELL_SIZE)
-# print(f"COLS: {COLS}")
-# print(f"ROWS: {ROWS}")
-# pprint.pp(len(grid))
-# pprint.pp(len(grid[0]))
 
 cell = Cell((CELL_SIZE, CELL_SIZE))
 grid = []
@@ -56,7 +67,6 @@ prev_end_set_key_state   = False
 start_set_key_state_pressed = False
 end_set_key_state_pressed   = False
 
-# start_index = (None, None)
 start_index = (0, 10)
 end_index =   (None, None)
 
@@ -198,6 +208,9 @@ while not quit_game:
 
     if end_index[0] != None and end_index[1] != None:
         draw_square((end_index[0]*CELL_SIZE, end_index[1]*CELL_SIZE), CELL_SIZE, "blue", 0)
+
+    # Draw metrics
+    draw_text_outlined(screen, font, f"Path len: {len(path)}", text_pos, "white", "black")
 
     pygame.display.flip()
 
