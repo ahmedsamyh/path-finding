@@ -1,5 +1,4 @@
 import pygame
-import pprint
 from queue import Queue
 
 WIDTH  = 800
@@ -10,12 +9,11 @@ pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 quit_game = False
 
-font = pygame.font.Font('.\Inconsolata-Regular.ttf', 32)
+font = pygame.font.Font('./Inconsolata-Regular.ttf', 32)
 font.set_bold(True)
 # font = pygame.font.Font(pygame.font.get_default_font())
 
 text_pos = (10, 10)
-
 
 def draw_text_outlined(screen, font, text, pos, color, out_color):
     off = 4
@@ -95,7 +93,7 @@ def get_cell_nbors(i, j):
     return nbors
 
 # Returns flow-chart to start from every cell
-def a_star(grid, start, end):
+def a_star(start, end):
     # frontier = [start]
     frontier = Queue()
     frontier.put(start)
@@ -105,7 +103,7 @@ def a_star(grid, start, end):
     # pprint.pp(f"Starting from {start}")
     while not frontier.empty():
         current = frontier.get()
-        if current in walls and walls[current]:
+        if current in walls:
             continue
         if current == end:
             break
@@ -118,20 +116,20 @@ def a_star(grid, start, end):
     # assert len(came_from) == COLS*ROWS, "Couldn't calculate flow-chart of every cell!"
     return came_from
 
-def reconstruct_path(grid, flow_chart, start, end):
+def reconstruct_path(flow_chart, start, end):
     current = end
     path = []
     while current != start:
         try:
             current = flow_chart[current]
-        except Exception as e:
+        except Exception:
             return path
         path.append(current)
     # pprint.pp(f"Calculated path! of {len(path)} cells")
     return path
 
 def is_start_end_ready():
-    return end_index[0] != None and end_index[1] != None and end_index[0] != None and end_index[1] != None
+    return start_index[0] != None and start_index[1] != None and end_index[0] != None and end_index[1] != None
 
 while not quit_game:
     # Mouse press/release
@@ -175,11 +173,10 @@ while not quit_game:
     if end_set_key_state_pressed:
         end_index = (mi, mj)
 
-    # TODO: Can check if the clicking index is not the current start/end index and not calculate path
     if mouse_state[LEFT] or mouse_state[RIGHT] or start_set_key_state_pressed or end_set_key_state_pressed:
         if is_start_end_ready():
-            flow_chart = a_star(grid, start_index, end_index)
-            path = reconstruct_path(grid, flow_chart, start_index, end_index)
+            flow_chart = a_star(start_index, end_index)
+            path = reconstruct_path(flow_chart, start_index, end_index)
         # pprint.pp(path)
 
     # Draw grid
